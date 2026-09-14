@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+
+Admin Username: helen.cater
+Admin Password: @dmin
