@@ -60,8 +60,44 @@ The student created during the CTF is not normally visible in this list.
 The player can identify that the visible records are incomplete and continue investigating the search functionality.
 
 ---
+## 4. Intended Student Search Restriction
 
-## 4. SQL Injection
+### Location
+> 🔍 search bar
+
+The student marks management page intentionally restricts normal search results to only fetch records whose student ID begins with `NB-`.
+
+This means that when an administrator performs a normal search using either student full name or exact student ID (eg: NC-AP26-0001), only the pre-existing `NB-*` student records are returned. A newly registered player receives an `NC-*` student ID and therefore does not appear in the normal search results.
+
+This restriction is part of the CTF design rather than a database limitation.
+
+The search query is intentionally vulnerable to SQL injection. By manipulating the search input, a player can bypass the `NB-*` restriction and cause additional records, including the player's `NC-*` record, to appear.
+
+The intended progression is:
+
+```text
+Normal Search
+     │
+     ▼
+Only NB-* records visible
+     │
+     ▼
+Player's NC-* record is missing
+     │
+     ▼
+Investigate the search functionality
+     │
+     ▼
+SQL Injection
+     │
+     ▼
+NB-* restriction bypassed
+     │
+     ▼
+NC-* player record discovered
+```
+---
+## 5. SQL Injection
 
 ### Location
 
@@ -83,7 +119,7 @@ The player's own student ID can then be used with the marks editing interface.
 
 ---
 
-## 5. Marks Manipulation
+## 6. Marks Manipulation
 
 Once the player's student record has been discovered, the marks editing interface allows the record to be modified.
 
