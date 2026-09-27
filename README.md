@@ -267,3 +267,9 @@ The marks update itself uses a prepared SQL statement; the intentional SQL injec
 Detailed testing information is available in [Vulnerabilities_&_Testing.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Docs/Vulnerabilities_%26_Testing.md).
 
 ---
+## Contributors
+
+Thanks to everyone who contributed to this project:
+
+- [@Incogn1mu5](https://github.com/username1)
+- [@priyanshi-halpani](https://github.com/priyanshi-halpani)
