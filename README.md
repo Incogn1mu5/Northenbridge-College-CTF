@@ -1,11 +1,23 @@
 # Northenbridge College CTF Lab
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/b6732ab3213b27d54c0b4ca16d10abc175c1106f/Screenshots/assets/Hacker4Help_Logo-White.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/06c55671b6537bd18741da03a8cbe0429b42994a/Screenshots/assets/Hacker4Help_Logo-Black.png">
+  <img align="right" alt="Hacker4Help" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/06c55671b6537bd18741da03a8cbe0429b42994a/Screenshots/assets/Hacker4Help_Logo-Black.png" width="140">
+</picture>
 
-A fictional college web portal built as a beginner-friendly Capture The Flag (CTF) lab.
+### About This Project
 
-The project combines a simple student portal with an intentionally vulnerable administrative portal. Players are expected to explore the application, follow clues, discover hidden functionality, and eventually modify their own academic record to complete the challenge.
+A fictional college web portal built as a beginner-friendly Capture The Flag (CTF) lab developed as part of an internship with **&lt;/Hacker4Help&gt;**, a company focused on Offensive & Defensive security training. This repository: Northenbridge-College-CTF lab — showcases hands-on
+work done on this initial version of CTF Lab during the internship.
+
+**Company:**[&lt;/Hacker4Help&gt;](https://hacker4help.com)
+
+---
+
+The project combines a simple student portal with an intentionally vulnerable administrative portal. Players are expected to explore the application, follow clues, discover hidden functionality, and eventually modify their own academic record to find final secrete flag and complete the challenge.
 
 > [!CAUTION]
-> **Educational use only:** This application intentionally contains vulnerabilities and fictional data. Do not deploy it on an untrusted or public network.
+> This project is an intentionally vulnerable Capture The Flag (CTF) educational sandbox. The code, architecture and configurations within this repository are designed specifically for security training and **doesn't** reflect the production engineering or security standards of **<a href="https://github.com/hacker4help">&lt;/Hacker4Help&gt;</a>** team.  Do not deploy this on an untrusted or public network.
 
 ---
 
@@ -255,7 +267,3 @@ The marks update itself uses a prepared SQL statement; the intentional SQL injec
 Detailed testing information is available in [Vulnerabilities_&_Testing.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Docs/Vulnerabilities_%26_Testing.md).
 
 ---
-
-## License
-
-See [`LICENSE`](LICENSE).
