@@ -1,4 +1,5 @@
 # Northenbridge College CTF Lab
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/b6732ab3213b27d54c0b4ca16d10abc175c1106f/Screenshots/assets/Hacker4Help_Logo-White.png">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/06c55671b6537bd18741da03a8cbe0429b42994a/Screenshots/assets/Hacker4Help_Logo-Black.png">
@@ -116,6 +117,12 @@ northenbridge-ctf/
 ├── seed.sql
 ├── www/
 │   ├── index.php
+│   ├── academics.php
+│   ├── admissions.php
+│   ├── contact.php
+│   ├── about.php
+│   ├── events.php
+│   ├── login.php
 │   ├── login.php
 │   ├── register.php
 │   ├── profile.php
@@ -145,17 +152,20 @@ northenbridge-ctf/
 ## Screenshots
 
 ### College Homepage
+
 <img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenbridge-Home_page.png" />  
 
 ### Student Portal
+
 <img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Student-Login_page.png" />  
 
 ### Student Marks
+
 <img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Student-Exam-Result_page.png" />
 
 ### Admin Dashboard
-<img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Admin-Dashborad_page.png" />
 
+<img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Admin-Dashborad_page.png" />
 
 ---
 
@@ -267,6 +277,7 @@ The marks update itself uses a prepared SQL statement; the intentional SQL injec
 Detailed testing information is available in [Vulnerabilities_&_Testing.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Docs/Vulnerabilities_%26_Testing.md).
 
 ---
+
 ## Contributors
 
 Thanks to everyone who contributed to this project:
