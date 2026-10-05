@@ -236,7 +236,7 @@ INSERT INTO flags
 (flag_name, flag_value, description)
 VALUES
 ('Flag_01','Flag{Discovered_hidden_route}','Flag for discovering unlinked admin directory with login portal'),
-('Flag_02','Flag{Found_Admin_Credentials}','Flag for finding admin credentials on web file'),
+('Flag_02','Flag{Access_Admin_Dashboard}','Flag for finding admin credentials on web file'),
 ('Flag_03','Flag{Explored_Limited_Records}','Third flag revealed while exploring the limited student-record view'),
 ('Flag_04','Flag{Change_Failure_into_Your_Success}','Flag for changing student marks using SQL injection');
 
