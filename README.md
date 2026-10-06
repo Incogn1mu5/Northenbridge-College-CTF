@@ -123,7 +123,6 @@ northenbridge-ctf/
 │   ├── about.php
 │   ├── events.php
 │   ├── login.php
-│   ├── login.php
 │   ├── register.php
 │   ├── profile.php
 │   ├── marks.php
