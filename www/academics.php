@@ -3,34 +3,81 @@
 // Northenbridge College — Academics
 // ---------------------------------------------------------
 
+require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/db.php';
 
-$schools = [
-    [
-        "name" => "School of Engineering",
-        "majors" => ["Computer Science", "Software Engineering", "Civil Engineering", "Mechanical Engineering"],
-    ],
-    [
-        "name" => "School of Information Technology",
-        "majors" => ["Information Technology", "Cybersecurity", "Data Science"],
-    ],
-    [
-        "name" => "School of Arts & Humanities",
-        "majors" => ["English Literature", "History", "Philosophy", "Studio Arts"],
-    ],
-    [
-        "name" => "School of Science",
-        "majors" => ["Biology", "Chemistry", "Physics", "Mathematics"],
-    ],
-    [
-        "name" => "School of Business",
-        "majors" => ["Business Administration", "Accounting", "Economics", "Marketing"],
-    ],
+/*
+|--------------------------------------------------------------------------
+| Fetch courses from database
+|--------------------------------------------------------------------------
+*/
+$coursesResult = $db->query("
+    SELECT
+        course_id,
+        course_name,
+        department,
+        instructor,
+        credits
+    FROM courses
+    ORDER BY
+        CASE department
+            WHEN 'Information Technology' THEN 1
+            WHEN 'Computer Science' THEN 2
+            WHEN 'Civil Engineering' THEN 3
+            WHEN 'Mechanical Engineering' THEN 4
+            ELSE 5
+        END,
+        course_id
+");
+
+$coursesByDepartment = [];
+
+if ($coursesResult) {
+    while ($course = $coursesResult->fetchArray(SQLITE3_ASSOC)) {
+        $coursesByDepartment[$course['department']][] = $course;
+    }
+}
+
+$totalCourses = 0;
+foreach ($coursesByDepartment as $departmentCourses) {
+    $totalCourses += count($departmentCourses);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Fetch faculty data from database
+|--------------------------------------------------------------------------
+*/
+$facultyResult = $db->query("
+    SELECT
+        name,
+        department,
+        email,
+        phone,
+        title
+    FROM faculty
+    ORDER BY name
+");
+
+$facultyByName = [];
+
+if ($facultyResult) {
+    while ($faculty = $facultyResult->fetchArray(SQLITE3_ASSOC)) {
+        $facultyByName[$faculty['name']] = $faculty;
+    }
+}
+
+$departments = [
+    'Information Technology',
+    'Computer Science',
+    'Civil Engineering',
+    'Mechanical Engineering',
 ];
 
 $highlights = [
     [
-        "title" => "5 Schools, 28 Majors",
-        "desc" => "Undergraduate programs across engineering, technology, arts, science, and business.",
+        "title" => "4 Departments, Dynamic Courses",
+        "desc" => "Explore current course offerings directly from the college course catalogue.",
     ],
     [
         "title" => "11:1 Student–Faculty Ratio",
@@ -87,112 +134,6 @@ $year = date("Y");
     }
 
     a { color: inherit; }
-
-    /* ---------- Nav ---------- */
-    header.site-nav {
-        background: var(--hedge-dark);
-        color: var(--parchment);
-        border-bottom: 3px solid var(--brass);
-    }
-
-    .nav-inner {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0.9rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-    }
-
-    .brand {
-        display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-        text-decoration: none;
-        color: var(--parchment);
-    }
-
-    .brand-mark {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border: 1.5px solid var(--brass);
-        border-radius: 50%;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--brass);
-    }
-
-    .brand-word {
-        font-size: 1.25rem;
-    }
-
-    .brand-word small {
-        display: block;
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.62rem;
-        letter-spacing: 0.14em;
-        color: #b9c4bb;
-        font-weight: 400;
-    }
-
-    nav.primary-links {
-        display: flex;
-        align-items: center;
-        gap: 1.75rem;
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.93rem;
-    }
-
-    nav.primary-links a {
-        text-decoration: none;
-        color: #d8ded9;
-        padding: 0.3rem 0;
-        border-bottom: 2px solid transparent;
-        transition: border-color 0.15s ease, color 0.15s ease;
-    }
-
-    nav.primary-links a:hover {
-        color: #ffffff;
-        border-bottom-color: var(--brass);
-    }
-
-    .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.9rem;
-    }
-
-    .btn-login {
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.88rem;
-        background: var(--brass);
-        color: #221a0d;
-        padding: 0.5rem 1.1rem;
-        border-radius: 3px;
-        text-decoration: none;
-        font-weight: 600;
-        white-space: nowrap;
-        transition: background 0.15s ease;
-    }
-
-    .btn-login:hover {
-        background: #c19248;
-    }
-
-    .menu-toggle {
-        display: none;
-        background: none;
-        border: 1px solid #4b5f54;
-        color: var(--parchment);
-        font-size: 1.1rem;
-        padding: 0.35rem 0.6rem;
-        border-radius: 3px;
-        cursor: pointer;
-    }
 
     /* ---------- Page hero ---------- */
     .page-hero {
@@ -285,43 +226,205 @@ $year = date("Y");
         margin: 0;
     }
 
-    /* ---------- Schools ---------- */
-    .school-grid {
+    /* ---------- Courses ---------- */
+    .department-section {
+        margin-bottom: 2.8rem;
+    }
+
+    .department-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .department-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.55rem;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .department-title h3 {
+        margin: 0;
+        font-size: 1.35rem;
+        color: var(--hedge-dark);
+    }
+
+    .department-code {
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--brass);
+        text-transform: uppercase;
+    }
+
+    .course-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 1.25rem;
     }
 
-    .school-card {
+    .course-card {
         border: 1px solid var(--line);
+        border-top: 3px solid var(--hedge);
         background: #fffdf8;
-        padding: 1.4rem;
+        padding: 1.35rem;
         border-radius: 3px;
-        border-left: 3px solid var(--brass);
     }
 
-    .school-card h3 {
-        font-size: 1.15rem;
-        margin: 0 0 0.8rem;
+    .course-code {
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--brass);
+        margin-bottom: 0.35rem;
+    }
+
+    .course-card h4 {
+        margin: 0 0 1rem;
+        font-size: 1.12rem;
         color: var(--hedge-dark);
     }
 
-    .school-card ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.45rem;
+    .course-details {
+        display: grid;
+        gap: 0.55rem;
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 0.86rem;
     }
 
-    .school-card li {
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.82rem;
+    .course-detail {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 0.45rem;
+        border-top: 1px solid #eee9df;
+    }
+
+    .course-detail .label {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .course-detail .value {
+        color: var(--ink);
+        text-align: right;
+    }
+
+    .instructor-link {
         color: var(--hedge);
-        background: #f0ece2;
-        padding: 0.28rem 0.7rem;
-        border-radius: 12px;
+        background: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-color: var(--brass);
+        text-underline-offset: 3px;
+        cursor: pointer;
+    }
+
+    .instructor-link:hover {
+        color: var(--brass);
+    }
+
+    /* ---------- Faculty modal ---------- */
+    .faculty-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: rgba(28, 42, 36, 0.68);
+    }
+
+    .faculty-modal.is-open {
+        display: flex;
+    }
+
+    .faculty-tile {
+        width: min(520px, 100%);
+        background: #fffdf8;
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--brass);
+        border-radius: 5px;
+        padding: 2rem;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+        position: relative;
+    }
+
+    .faculty-eyebrow {
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: var(--brass);
+        text-transform: uppercase;
+        margin-bottom: 0.45rem;
+    }
+
+    .faculty-tile h3 {
+        margin: 0 0 0.25rem;
+        font-size: 1.7rem;
+        color: var(--hedge-dark);
+    }
+
+    .faculty-title {
+        color: var(--muted);
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 0.9rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .faculty-details {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .faculty-detail {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 1rem;
+        padding-top: 0.65rem;
+        border-top: 1px solid #eee9df;
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 0.9rem;
+    }
+
+    .faculty-detail .label {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .faculty-detail .value {
+        color: var(--ink);
+        word-break: break-word;
+    }
+
+    .faculty-close {
+        position: absolute;
+        top: 0.9rem;
+        right: 0.9rem;
+        border: 1px solid var(--line);
+        background: var(--parchment);
+        color: var(--hedge-dark);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+
+    .faculty-close:hover {
+        background: var(--hedge);
+        color: white;
     }
 
     /* ---------- Academic calendar strip ---------- */
@@ -349,33 +452,13 @@ $year = date("Y");
         border-right: 1px solid var(--line);
         padding-right: 0.8rem;
     }
-    
+
     .note-strip-inner p { margin: 0; color: #3c4841; }
-    
-    /* ---------- Footer ---------- */
-    footer {
-        background: var(--hedge-dark);
-        color: #b9c4bb;
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.83rem;
-    }
-
-    .footer-inner {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-
 
     /* ---------- Responsive ---------- */
     @media (max-width: 860px) {
         .card-grid { grid-template-columns: repeat(2, 1fr); }
-        .school-grid { grid-template-columns: 1fr; }
+        .course-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -396,34 +479,14 @@ $year = date("Y");
 </style>
 </head>
 <body>
-<header class="site-nav">
-    <div class="nav-inner">
-        <a href="index.php" class="brand">
-            <span class="brand-mark">NC</span>
-            <span class="brand-word">Northenbridge<small>COLLEGE</small></span>
-        </a>
 
-        <nav class="primary-links">
-            <a href="academics.php">Academics</a>
-            <a href="admissions.php">Admissions</a>
-            <a href="events.php">Events</a>
-            <a href="about.php">About</a>
-            <a href="contact.php">Contact</a>
-        </nav>
-
-        <div class="nav-actions">
-            <a href="login.php" class="btn-login">Student Login</a>
-            <button class="menu-toggle" aria-label="Open menu">☰</button>
-        </div>
-    </div>
-</header>
-
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
 <section class="page-hero">
     <div class="page-hero-inner">
         <div class="hero-motto sans">ACADEMICS</div>
-        <h1>Programs &amp; Schools</h1>
-        <p class="lede">Twenty-eight majors across five schools, built around small classes, rigorous coursework, and mentorship that follows you from first year to capstone.</p>
+        <h1>Courses &amp; Departments</h1>
+        <p class="lede">Explore the college course catalogue by department, with course details maintained directly in the academic database.</p>
     </div>
 </section>
 
@@ -451,28 +514,181 @@ $year = date("Y");
 
 <section class="section">
     <div class="section-head">
-        <h2>Schools &amp; Majors</h2>
+        <h2>Courses</h2>
+        <span class="sans"><?php echo $totalCourses; ?> courses</span>
     </div>
-    <div class="school-grid">
-        <?php foreach ($schools as $school): ?>
-        <div class="school-card">
-            <h3><?php echo htmlspecialchars($school['name']); ?></h3>
-            <ul>
-                <?php foreach ($school['majors'] as $major): ?>
-                <li><?php echo htmlspecialchars($major); ?></li>
-                <?php endforeach; ?>
-            </ul>
+
+    <?php
+    $departmentCodes = [
+        'Information Technology' => 'IT',
+        'Computer Science' => 'CS',
+        'Civil Engineering' => 'CE',
+        'Mechanical Engineering' => 'ME',
+    ];
+    ?>
+
+    <script>
+        const facultyDirectory = <?php
+            echo json_encode(
+                $facultyByName,
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            );
+        ?>;
+    </script>
+
+    <?php foreach ($departments as $department): ?>
+        <div class="department-section">
+            <div class="department-title">
+                <h3><?php echo htmlspecialchars($department); ?></h3>
+                <span class="department-code">
+                    <?php echo htmlspecialchars($departmentCodes[$department]); ?>
+                </span>
+            </div>
+
+            <div class="course-grid">
+                <?php if (!empty($coursesByDepartment[$department])): ?>
+                    <?php foreach ($coursesByDepartment[$department] as $course): ?>
+                        <article class="course-card">
+                            <div class="course-code">
+                                Course Code:
+                                <?php echo htmlspecialchars($course['course_id']); ?>
+                            </div>
+
+                            <h4>
+                                <?php echo htmlspecialchars($course['course_name']); ?>
+                            </h4>
+
+                            <div class="course-details">
+                                <div class="course-detail">
+                                    <span class="label">Department</span>
+                                    <span class="value">
+                                        <?php echo htmlspecialchars($course['department']); ?>
+                                    </span>
+                                </div>
+
+                                <div class="course-detail">
+                                    <span class="label">Instructor</span>
+                                    <span class="value">
+                                        <?php if (isset($facultyByName[$course['instructor']])): ?>
+                                            <button
+                                                type="button"
+                                                class="instructor-link"
+                                                data-instructor="<?php echo htmlspecialchars($course['instructor'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            >
+                                                <?php echo htmlspecialchars($course['instructor']); ?>
+                                            </button>
+                                        <?php else: ?>
+                                            <?php echo htmlspecialchars($course['instructor']); ?>
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+
+                                <div class="course-detail">
+                                    <span class="label">Credits</span>
+                                    <span class="value">
+                                        <?php echo htmlspecialchars($course['credits']); ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="sans">No courses are currently listed for this department.</p>
+                <?php endif; ?>
+            </div>
         </div>
-        <?php endforeach; ?>
-    </div>
+    <?php endforeach; ?>
 </section>
 
-<footer>
-    <div class="footer-inner">
-        <span>&copy; <?php echo $year; ?> Northenbridge College</span>
-        <span>18 Whitfield Lane · Northenbridge</span>
-    </div>
-</footer>
+<!-- Faculty profile modal -->
+<div class="faculty-modal" id="facultyModal" aria-hidden="true">
+    <div class="faculty-tile" role="dialog" aria-modal="true" aria-labelledby="facultyName">
+        <button
+            type="button"
+            class="faculty-close"
+            id="facultyClose"
+            aria-label="Close faculty profile"
+        >
+            ×
+        </button>
 
-</body>
-</html>
+        <div class="faculty-eyebrow">Faculty Profile</div>
+
+        <h3 id="facultyName"></h3>
+        <p class="faculty-title" id="facultyTitle"></p>
+
+        <div class="faculty-details">
+            <div class="faculty-detail">
+                <span class="label">Department</span>
+                <span class="value" id="facultyDepartment"></span>
+            </div>
+
+            <div class="faculty-detail">
+                <span class="label">Email</span>
+                <span class="value" id="facultyEmail"></span>
+            </div>
+
+            <div class="faculty-detail">
+                <span class="label">Phone</span>
+                <span class="value" id="facultyPhone"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('facultyModal');
+    const closeButton = document.getElementById('facultyClose');
+
+    const facultyName = document.getElementById('facultyName');
+    const facultyTitle = document.getElementById('facultyTitle');
+    const facultyDepartment = document.getElementById('facultyDepartment');
+    const facultyEmail = document.getElementById('facultyEmail');
+    const facultyPhone = document.getElementById('facultyPhone');
+
+    function openFacultyProfile(name) {
+        const faculty = facultyDirectory[name];
+
+        if (!faculty) {
+            return;
+        }
+
+        facultyName.textContent = faculty.name;
+        facultyTitle.textContent = faculty.title;
+        facultyDepartment.textContent = faculty.department;
+        facultyEmail.textContent = faculty.email;
+        facultyPhone.textContent = faculty.phone;
+
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeFacultyProfile() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelectorAll('.instructor-link').forEach(function (button) {
+        button.addEventListener('click', function () {
+            openFacultyProfile(this.dataset.instructor);
+        });
+    });
+
+    closeButton.addEventListener('click', closeFacultyProfile);
+
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            closeFacultyProfile();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+            closeFacultyProfile();
+        }
+    });
+})();
+</script>
+
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
