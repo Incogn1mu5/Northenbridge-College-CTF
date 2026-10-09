@@ -1,22 +1,24 @@
 PRAGMA foreign_keys = ON;
 
-DROP TABLE IF EXISTS marks;
-DROP TABLE IF EXISTS students;
-DROP TABLE IF EXISTS admins;
-DROP TABLE IF EXISTS flags;
+-- ============================================================
+-- Northenbridge College CTF — seed data
+-- Idempotent: safe to run many times (CREATE IF NOT EXISTS +
+-- INSERT OR IGNORE). Existing player data is never destroyed.
+-- ============================================================
 
 
-CREATE TABLE admins (
+CREATE TABLE IF NOT EXISTS admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     name TEXT NOT NULL,
     number TEXT NOT NULL,
-    salary REAL NOT NULL DEFAULT 0
+    salary REAL NOT NULL DEFAULT 0,
+    department TEXT NOT NULL DEFAULT 'Information Technology'
 );
 
 
-CREATE TABLE students (
+CREATE TABLE IF NOT EXISTS students (
     student_id TEXT PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
@@ -38,7 +40,7 @@ CREATE TABLE students (
 );
 
 
-CREATE TABLE marks (
+CREATE TABLE IF NOT EXISTS marks (
     student_id TEXT PRIMARY KEY,
 
     math INTEGER NOT NULL DEFAULT 0,
@@ -57,7 +59,39 @@ CREATE TABLE marks (
 );
 
 
-CREATE TABLE flags (
+-- Course catalogue (per department). Kept separate from marks so the
+-- limited clerk view can report an enrolled-courses count.
+CREATE TABLE IF NOT EXISTS courses (
+    course_id TEXT PRIMARY KEY,
+    course_name TEXT NOT NULL,
+    department TEXT NOT NULL,
+    instructor TEXT NOT NULL,
+    credits INTEGER NOT NULL DEFAULT 4
+);
+
+
+-- Faculty directory (fictional).
+CREATE TABLE IF NOT EXISTS faculty (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    department TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    phone TEXT NOT NULL,
+    title TEXT NOT NULL
+);
+
+
+-- Internal compliance / audit notes. The final flag is deliberately NOT
+-- stored in any database table; the note below only points to its
+-- filesystem location (see infra/provision.sh).
+CREATE TABLE IF NOT EXISTS compliance_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    note TEXT NOT NULL,
+    note_date TEXT NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS flags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     flag_name TEXT NOT NULL UNIQUE,
     flag_value TEXT NOT NULL,
@@ -69,19 +103,20 @@ CREATE TABLE flags (
 -- FICTIONAL ADMIN
 -- =========================================
 
-INSERT INTO admins
-(username, password, name, number, salary)
+INSERT OR IGNORE INTO admins
+(username, password, name, number, salary, department)
 VALUES
 (
     'helen.carter',
-    '@dmin',
+    'Winter2026!',
     'Helen Carter',
     '9457623547',
-    75000
+    75000,
+    'Information Technology'
 );
 
 -- FICTIONAL STUDENTS
-INSERT INTO students
+INSERT OR IGNORE INTO students
 (student_id, first_name, last_name, contact_number, dob, address, department, email, password)
 VALUES
 
@@ -201,7 +236,7 @@ VALUES
     '7865324567',
     '2004-08-20',
     'Rajkot, Gujarat, India.',
-    'Civil Engineering',
+    'Information Technology',
     'raghavpatel@northenbridge.lab',
     'raghav2004'
 );
@@ -211,7 +246,7 @@ VALUES
 -- FICTIONAL MARKS
 -- =========================================
 
-INSERT INTO marks
+INSERT OR IGNORE INTO marks
 (student_id, math, cpp, python, graphics)
 VALUES
 
@@ -226,18 +261,68 @@ VALUES
 ('NB-RA26-8681', 55, 67, 45, 50),
 ('NB-AP26-4737', 35, 36, 37, 38),
 ('NB-RP26-2979', 20, 78, 45, 23);
- 
+
 
 -- =========================================
--- CTF FLAG
+-- FICTIONAL COURSE CATALOGUE
 -- =========================================
 
-INSERT INTO flags
+INSERT OR IGNORE INTO courses
+(course_id, course_name, department, instructor, credits)
+VALUES
+
+('IT-101', 'Introduction to Information Technology', 'Information Technology', 'Dr. Anil Mehta', 4),
+('IT-202', 'Network Fundamentals', 'Information Technology', 'Dr. Anil Mehta', 4),
+('IT-310', 'Information Security Essentials', 'Information Technology', 'Ms. Priya Kannan', 4),
+('CS-101', 'Programming Fundamentals', 'Computer Science', 'Mr. Rohan Singh', 4),
+('CS-203', 'Data Structures and Algorithms', 'Computer Science', 'Mr. Rohan Singh', 4),
+('CS-305', 'Database Management Systems', 'Computer Science', 'Dr. Lina Farouk', 4),
+('CE-101', 'Engineering Mechanics', 'Civil Engineering', 'Mr. David Okafor', 4),
+('CE-204', 'Structural Analysis', 'Civil Engineering', 'Mr. David Okafor', 4),
+('ME-101', 'Thermodynamics', 'Mechanical Engineering', 'Mr. Mohd. Khan', 4),
+('ME-206', 'Fluid Mechanics', 'Mechanical Engineering', 'Mr. Mohd. Khan', 4);
+
+
+-- =========================================
+-- FICTIONAL FACULTY DIRECTORY
+-- =========================================
+
+INSERT OR IGNORE INTO faculty
+(name, department, email, phone, title)
+VALUES
+
+('Dr. Anil Mehta', 'Information Technology', 'anil.mehta@northenbridge.lab', '9911223344', 'Professor'),
+('Ms. Priya Kannan', 'Information Technology', 'priya.kannan@northenbridge.lab', '9922334455', 'Assistant Professor'),
+('Mr. Rohan Singh', 'Computer Science', 'rohan.singh@northenbridge.lab', '9933445566', 'Professor'),
+('Dr. Lina Farouk', 'Computer Science', 'lina.farouk@northenbridge.lab', '9944556677', 'Associate Professor'),
+('Mr. David Okafor', 'Civil Engineering', 'david.okafor@northenbridge.lab', '9955667788', 'Professor'),
+('Ms. Fatima Hassan', 'Civil Engineering', 'fatima.hassan@northenbridge.lab', '9966778899', 'Assistant Professor'),
+('Mr. Mohd. Khan', 'Mechanical Engineering', 'mohammed.khan@northenbridge.lab', '9977889900', 'Professor'),
+('Dr. Emily Wong', 'Mechanical Engineering', 'emily.wong@northenbridge.lab', '9988990011', 'Associate Professor');
+
+
+-- =========================================
+-- FICTIONAL COMPLIANCE / AUDIT NOTES
+-- =========================================
+
+INSERT OR IGNORE INTO compliance_notes
+(id, note, note_date)
+VALUES
+
+(1, 'Full audit log archived at /opt/northenbridge/flag.txt.', '2026-09-01'),
+(2, 'All student records remain subject to the clerk view restriction.', '2026-09-01'),
+(3, 'Quarterly data-protection review is scheduled before the spring term.', '2026-09-01');
+
+
+-- =========================================
+-- CTF FLAGS (in-application progression)
+-- The final flag does NOT live here — it is placed on the
+-- filesystem by infra/provision.sh.
+-- =========================================
+
+INSERT OR IGNORE INTO flags
 (flag_name, flag_value, description)
 VALUES
-('Flag_01','Flag{Discovered_hidden_route}','Flag for discovering unlinked admin directory with login portal'),
-('Flag_02','Flag{Access_Admin_Dashboard}','Flag for finding admin credentials on web file'),
-('Flag_03','Flag{Explored_Limited_Records}','Third flag revealed while exploring the limited student-record view'),
-('Flag_04','Flag{Change_Failure_into_Your_Success}','Flag for changing student marks using SQL injection');
-
-
+('Flag_01','NCC{Discovered_hidden_route}','Flag for discovering unlinked admin directory with login portal'),
+('Flag_02','NCC{Logged_in_as_Admin}','Flag for successfully logging in as admin'),
+('Flag_03','NCC{Explored_Limited_Records}','Flag for exploiting SQLi vulnerability and breaking limited record restriction');
