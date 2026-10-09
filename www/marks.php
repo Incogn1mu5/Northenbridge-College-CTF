@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/init.php';
 require_once __DIR__ . '/db.php';
 
 /*
@@ -97,37 +97,6 @@ $failedSubject = (
 
 $status = $failedSubject ? "FAILED" : "PASSED";
 $statusClass = $failedSubject ? "failed" : "passed";
-/*
-|--------------------------------------------------------------------------
-| Fetch Flag 04 only after student passes
-|--------------------------------------------------------------------------
-*/
-$flag4 = null;
-
-if (!$failedSubject) {
-    $flagStmt = $db->prepare("
-        SELECT flag_value
-        FROM flags
-        WHERE flag_name = :flag_name
-        LIMIT 1
-    ");
-
-    $flagStmt->bindValue(
-        ':flag_name',
-        'Flag_04',
-        SQLITE3_TEXT
-    );
-
-    $flagResult = $flagStmt->execute();
-
-    if ($flagResult) {
-        $flagRow = $flagResult->fetchArray(SQLITE3_ASSOC);
-
-        if ($flagRow) {
-            $flag4 = $flagRow['flag_value'];
-        }
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -393,15 +362,7 @@ if (!$failedSubject) {
 
 <body>
 
-<nav>
-    <div class="logo">Northedgebridge College</div>
-
-    <div>
-        <a href="profile.php">Profile</a>
-        <a href="marks.php">Exam Result</a>
-        <a href="logout.php">Logout</a>
-    </div>
-</nav>
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
 <main class="container">
 
@@ -479,14 +440,6 @@ if (!$failedSubject) {
             <div class="status <?= $statusClass ?>">
                 <?= $status ?>
             </div>
-            <?php if ($flag4 !== null): ?>
-    <div class="flag-box">
-        <div class="flag-label">CTF FLAG 4</div>
-        <div class="flag-value">
-            <?= htmlspecialchars($flag4) ?>
-        </div>
-    </div>
-<?php endif; ?>
 
         </div>
 
@@ -504,12 +457,11 @@ if (!$failedSubject) {
                 role="alert">
                 <strong>Reassessment Service Unavailable</strong>
 
-                Unable to contact the administrative service at
-                <code>/admin</code>.<br>
+                Reassessment requests are currently unavailable.<br>
 
-                Please try again later.<br>
+                Please check back later.<br>
 
-                <code>ERR_ADMIN_ENDPOINT_UNREACHABLE</code>
+                <code>ERR_SERVICE_UNAVAILABLE</code>
             </div>
 
         </div>
@@ -530,5 +482,4 @@ function showReassessmentError() {
     });
 }
 </script>
-</body>
-</html>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
