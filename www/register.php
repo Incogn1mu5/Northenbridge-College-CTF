@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/init.php';
 require_once __DIR__ . '/db.php';
 
 $errors = [];
@@ -880,38 +880,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 
-<!-- Navigation -->
-
-<nav>
-
-    <div class="brand">
-        Northenbridge <span>College</span>
-    </div>
-
-    <div class="nav-links">
-
-        <a href="index.php">
-            Home
-        </a>
-
-        <a href="index.php#academics">
-            Academics
-        </a>
-
-        <a href="index.php#events">
-            Events
-        </a>
-
-        <a href="login.php" class="login-link">
-            Student Login
-        </a>
-
-    </div>
-
-</nav>
-
-
 <!-- Registration -->
+
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
 <main class="page">
 
@@ -1270,14 +1241,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php endif; ?>
 
 
-<footer>
-
-    &copy; <?php echo date('Y'); ?>
-    Northenbridge College
-
-</footer>
-
-
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -1338,5 +1301,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
