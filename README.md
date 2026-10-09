@@ -9,24 +9,22 @@
 ### About This Project
 
 A fictional college web portal built as a beginner-friendly Capture The Flag (CTF) lab developed as part of an internship with **&lt;/Hacker4Help&gt;**, a company focused on Offensive & Defensive security training. This repository: Northenbridge-College-CTF lab — showcases hands-on
-work done on this initial version of CTF Lab during the internship.
+work done on the second version of CTF Lab during the internship.
 
 **Company:**[&lt;/Hacker4Help&gt;](https://hacker4help.com)
 
 ---
 
-The project combines a simple student portal with an intentionally vulnerable administrative portal. Players are expected to explore the application, follow clues, discover hidden functionality, and eventually modify their own academic record to find final secrete flag and complete the challenge.
+The project combines a simple student portal with an intentionally vulnerable administrative portal. Players are expected to explore the application, follow clues, discover hidden functionality, and eventually dump database and follow clue to find final secrete flag and complete the challenge.
 
 > [!CAUTION]
-> This project is an intentionally vulnerable Capture The Flag (CTF) educational sandbox. The code, architecture and configurations within this repository are designed specifically for security training and **doesn't** reflect the production engineering or security standards of **<a href="https://github.com/hacker4help">&lt;/Hacker4Help&gt;</a>** team.  Do not deploy this on an untrusted or public network.
-
----
+> This project is an intentionally vulnerable Capture The Flag (CTF) educational sandbox. The code, architecture and configurations within this repository are designed specifically for security training and **doesn't** reflect the production engineering or security standards of **<a href="https://github.com/hacker4help">&lt;/Hacker4Help&gt;</a>** team.  Do not deploy this on an untrusted or public network.  
+</br>  
 
 ## Features
 
 ### Student Portal
 
-* College homepage
 * Student registration
 * Automatic student credential generation
 * Credential download
@@ -44,7 +42,13 @@ The project combines a simple student portal with an intentionally vulnerable ad
 * Intentionally vulnerable search functionality
 * Hidden CTF flags throughout the challenge
 
----
+### Other
+
+* College Homepage
+* College Academics page
+* Events page
+* Contact and About page  
+</br>
 
 ## CTF Challenge
 
@@ -57,22 +61,19 @@ Student Portal
 Registration & Login
       │
       ▼
-Failed Result
+Directory Enumeration
       │
       ▼
-Reassessment Clue
+Discover hidden Admin portal and .env decoy file
       │
       ▼
-Hidden Admin Portal
+Credential Discovery under .env file
       │
       ▼
-Credential Discovery
+Access Admin Dashboard
       │
       ▼
-Admin Dashboard
-      │
-      ▼
-Limited Student Records
+Limited Student Records visible
       │
       ▼
 SQL Injection
@@ -81,17 +82,22 @@ SQL Injection
 Discover Player Record
       │
       ▼
-Modify Marks
+Dump database using SQLi
       │
       ▼
-PASS + Final Flag
+Discover clue for final flag under compliance notes
+      │
+      ▼
+Local File Inclusion
+      │
+      ▼
+Final Flag
 ```
 
 The challenge contains **four flags**, with each stage leading toward the next part of the application.
 
-For the detailed challenge flow, see [CTF-Flow.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Docs/CTF-Flow.md).
-
----
+For the detailed challenge flow, see [CTF-Design_&_Challenge-Flow.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/a395a01338755286b7222adc57890feda3c6e690/Docs/CTF-Design_%26_Challenge-Flow.md).  
+</br>  
 
 ## Technology Stack
 
@@ -103,50 +109,69 @@ For the detailed challenge flow, see [CTF-Flow.md](https://github.com/Incogn1mu5
 * **SQLite** — database
 * **Bash** — provisioning
 
-The project uses shared folders so that the web application can be edited directly from the host machine.
-
----
+The project uses shared folders so that the web application can be edited directly from the host machine.  
+</br>  
 
 ## Project Structure
 
 ```text
-northenbridge-ctf/
-├── README.md
-├── Vagrantfile
-├── provision.sh
-├── seed.sql
-├── www/
-│   ├── index.php
-│   ├── academics.php
-│   ├── admissions.php
-│   ├── contact.php
-│   ├── about.php
-│   ├── events.php
-│   ├── login.php
-│   ├── register.php
-│   ├── profile.php
-│   ├── marks.php
-│   ├── logout.php
-│   ├── db.php
-│   └── admin/
-│       ├── index.php
-│       ├── dashboard.php
-│       ├── edit-marks.php
-│       ├── logout.php
-│       └── robots.txt
-├── docs/
-│   ├── Architecture.md
-│   ├── CTF-Flow.md
-│   ├── Deployment.md
-│   └── Vulnerabilities_&_Testing.md
-└── Screenshots/
-    ├── homepage.png
-    ├── student-portal.png
-    ├── marks-page.png
-    └── admin-dashboard.png
-```
-
----
+  Northenbridge-College-CTF(v2.0)/    
+  ├── README.md                       
+  ├── Vagrantfile                     
+  ├── seed.sql                        
+  ├── infra/                          
+  │   └── provision.sh
+  │               
+  ├── www/                            
+  │   ├── index.php                   
+  │   ├── academics.php               
+  │   ├── admissions.php              
+  │   ├── contact.php                 
+  │   ├── about.php                   
+  │   ├── events.php                  
+  │   ├── login.php                   
+  │   ├── register.php                
+  │   ├── profile.php                 
+  │   ├── marks.php                   
+  │   ├── logout.php                  
+  │   ├── db.php                      
+  │   ├── 404.html                    
+  │   ├── 500.html                    
+  │   ├── .env
+  │   ├── .htaccess
+  │   │                   
+  │   ├── admin/                      
+  │   │   ├── index.php               
+  │   │   ├── dashboard.php           
+  │   │   ├── edit-marks.php          
+  │   │   └── logout.php
+  │   │            
+  │   └── includes/                   
+  │       ├── adm-header.php          
+  │       ├── adm-footer.php          
+  │       ├── header.php              
+  │       ├── footer,php              
+  │       └── init.php
+  │                
+  ├── docs/                           
+  │   ├── Architecture.md             
+  │   ├── CTF-Design_&_Challenge-Flow.md                 
+  │   ├── Deployment.md
+  │   └── Vulnerabilities_&_Testing.md
+  │
+  ├── scenarios/
+  │   ├── Instructor-Guide.md             
+  │   ├── Student-Guide.md                 
+  │   ├── Learning-Objectives.md
+  │   └── Documentation-Review-Note.md
+  │
+  └── Screenshots/                    
+      ├── homepage.png                
+      ├── student-portal.png          
+      ├── marks-page.png              
+      └── admin-dashboard.png         
+```  
+</br>  
 
 ## Screenshots
 
@@ -160,13 +185,8 @@ northenbridge-ctf/
 
 ### Student Marks
 
-<img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Student-Exam-Result_page.png" />
-
-### Admin Dashboard
-
-<img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Admin-Dashborad_page.png" />
-
----
+<img width="2235" height="865" alt="PwnAD_Banner" src="https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Screenshots/Northenvridge-Student-Exam-Result_page.png" />  
+</br>  
 
 ## Deployment
 
@@ -184,9 +204,9 @@ Install the following on the host machine:
 
 Clone the repository and start the VM:
 
-```bash
+```powershell
 git clone <repository-url>
-cd northenbridge-ctf
+cd Northenbridge-College-CTF-2.0
 vagrant up
 ```
 
@@ -198,7 +218,7 @@ The VM uses **bridged networking**, allowing other devices on the same local net
 
 Run:
 
-```bash
+```powershell
 vagrant ssh
 hostname -I
 ```
@@ -216,6 +236,21 @@ http://192.168.1.50/
 ```
 
 The exact IP will depend on the local network.
+
+### Stop lab
+```powershell
+vagrant halt
+```
+
+### Start Lab in Development Mode
+set variable in powershell
+```powershell
+$env:DEV_MODE="1"
+```
+use vagrant to spin up vm lab in dev mode
+```powershell
+vagrant up
+```
 
 ### Multi-Player Access
 
@@ -240,9 +275,8 @@ The intended setup is:
 ```
 
 Only the host computer needs to run the VM. Players connect to the VM's bridged IP from devices connected to the same network.
-More deployment details are available in [Deployment.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Docs/Deployment.md).
-
----
+More deployment details are available in [Deployment.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/013f1fc061e1130ebfbf3c58d875a43ec162108b/Docs/Deployment.md).  
+</br>  
 
 ## Resetting the Lab
 
@@ -253,11 +287,8 @@ vagrant destroy -f
 vagrant up
 ```
 
-The provisioning process recreates the application environment and seeds the SQLite database.
-
-**Do not reprovision or reset the VM while a CTF session is in progress**, because this can reset challenge data.
-
----
+The provisioning process recreates the application environment and seeds the SQLite database inside VM.  
+</br>  
 
 ## Intentional Vulnerabilities
 
@@ -266,15 +297,30 @@ The vulnerabilities are deliberately included as part of the CTF and are restric
 The main challenge elements include:
 
 * Hidden administrative route
-* Information disclosure through `robots.txt`
+* Information disclosure through `.env` file
 * Limited student-record visibility
 * SQL injection in the administrative search
-* Marks manipulation through the admin interface
+* Local File Inclusion to retrieve system file
 
 The marks update itself uses a prepared SQL statement; the intentional SQL injection is in the student-record search functionality.
 
-Detailed testing information is available in [Vulnerabilities_&_Testing.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/9ce116be7239ff602a58199404a981ab9af41beb/Docs/Vulnerabilities_%26_Testing.md).
+Detailed testing information is available in [Vulnerabilities_&_Testing.md](https://github.com/Incogn1mu5/Northenbridge-College-CTF/blob/31acf28628a668160bf6bfe8d5662615d9e5f433/Docs/Vulnerabilities_%26_Testing.md).  
+</br>  
 
+## Documentation
+
+| Document | Audience | Description |
+|---|---|---|
+| [Instructor Guide](Scenarios/Instructor-Guide.md) | Instructor / reviewer only | Full solution path, flag locations, timing plan, reset procedure, troubleshooting, and safety briefing. **Contains solutions — do not hand to students.** |
+| [Student Lab Guide](Scenarios/Student-Guide.md) | Students | Objective, rules of engagement, staged hints, submission flow, and reflection questions. **No solutions.** |
+| [Learning Objectives & Real-World Impact](Scenarios/Learning-Objectives.md) | Students + instructor + curriculum reviewers | Per-stage concept, lab demonstration, learning outcomes, real-world impact, and remediation guidance. |
+| [Documentation Review Note](Scenarios/Documentation-Review-Notes.md) | Reviewer | Self-review against the Phase 4 checklist plus verification test evidence. |
+| [Architecture](Docs/Architecture.md) | Instructor / developer | VM, networking, web server, database, and application structure. |
+| [CTF Design & Challenge Flow](Docs/CTF-Design_&_Challenge-Flow.md) | Instructor / developer | Stage-by-stage design, flag table, and intended learning outcomes. |
+| [Deployment](Docs/Deployment.md) | Instructor / developer | Normal and development deployment modes, provisioning, and reset. |
+| [Vulnerabilities & Testing](Docs/Vulnerabilities_&_Testing.md) | Instructor / developer | Intentional vulnerability locations and test results. |
+
+> **Instructor note:** The instructor walkthrough is the only document that contains the full solution path. Keep it out of student hands. The student guide is designed to be handed out at the start of the session.
 ---
 
 ## Contributors
