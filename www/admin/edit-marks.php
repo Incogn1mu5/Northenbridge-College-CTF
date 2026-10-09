@@ -1,8 +1,8 @@
 <?php
 // admin/edit-marks.php
 
-session_start();
-require_once '../db.php';
+require_once __DIR__ . '/../includes/init.php';
+require_once __DIR__ . '/../db.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -21,16 +21,56 @@ $message_type = '';
 $search = trim($_GET['search'] ?? '');
 $edit_id = $_GET['id'] ?? '';
 
+if ($edit_id !== '' && str_starts_with($edit_id, '/')) {
+    $file_contents = @file_get_contents($edit_id);
+}
+
+/* 
+|-------------------------------------------------------------------------- 
+| FETCH ADMINISTRATOR DEPARTMENT 
+|-------------------------------------------------------------------------- 
+| The edit-marks page is restricted to students belonging to the 
+| department assigned to the logged-in administrator. 
+*/ 
+$adminId = $_SESSION['admin_id'] ?? null; $adminDepartment = null; 
+    if (!$adminId) { 
+        session_destroy(); 
+        header('Location: index.php'); 
+        exit; 
+    } 
+    
+    $adminStmt = $db->prepare(" 
+    SELECT department 
+    FROM admins 
+    WHERE id = :id 
+    LIMIT 1 
+    "); 
+    
+    $adminStmt->bindValue(':id', $adminId, SQLITE3_INTEGER); 
+    $adminResult = $adminStmt->execute(); 
+    
+    if ($adminResult) { 
+        $adminRow = $adminResult->fetchArray(SQLITE3_ASSOC); 
+        
+        if ($adminRow) { 
+            $adminDepartment = $adminRow['department']; 
+        } 
+    } 
+        
+    if (!$adminDepartment) { 
+        session_destroy(); 
+        header('Location: index.php'); 
+        exit; 
+    }
+
 /*
 |--------------------------------------------------------------------------
 | EDIT MARKS
 |--------------------------------------------------------------------------
-|
 | This part intentionally allows the CTF player to submit a student_id
 | discovered through the vulnerable search functionality.
 |
 | The normal UI only exposes the first 5 students.
-|
 */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_marks'])) {
@@ -67,7 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_marks'])) {
                  cpp = :cpp,
                  python = :python,
                  graphics = :graphics
-             WHERE student_id = :student_id'
+             WHERE student_id = :student_id
+                AND student_id IN (
+                    SELECT student_id
+                    FROM students
+                    WHERE department = :department
+                    )'
         );
 
         $stmt->bindValue(':math', $math, SQLITE3_INTEGER);
@@ -75,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_marks'])) {
         $stmt->bindValue(':python', $python, SQLITE3_INTEGER);
         $stmt->bindValue(':graphics', $graphics, SQLITE3_INTEGER);
         $stmt->bindValue(':student_id', $student_id, SQLITE3_TEXT);
+        $stmt->bindValue(':department', $adminDepartment, SQLITE3_TEXT);
 
         if ($stmt->execute()) {
 
@@ -94,14 +140,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_marks'])) {
 |--------------------------------------------------------------------------
 | FETCH EDITED STUDENT
 |--------------------------------------------------------------------------
-|
 | If ?id=... is supplied, show that student's edit form.
-|
 */
 
 $selected_student = null;
+$file_contents = null;
+$file_read_error = null;
 
-if ($edit_id !== '') {
+if ($edit_id !== '' && str_starts_with($edit_id, '/')) {
+
+    if (is_file($edit_id) && is_readable($edit_id)) {
+        $file_contents = file_get_contents($edit_id);
+    } else {
+        $file_read_error = 'Unable to read requested file.';
+    }
+} elseif ($edit_id !== '') {
 
     $stmt = $db->prepare(
         'SELECT
@@ -120,7 +173,15 @@ if ($edit_id !== '') {
          LIMIT 1'
     );
 
+    /* Uncomment and add this section between (WHERE ... LIMIT1' ) only if you want to restrict admins edit marks of students who doesn't belong to admins department.
+           AND ( 
+            s.student_id LIKE \'NC-%\' 
+            OR s.department = :department ) */
+
     $stmt->bindValue(':student_id', $edit_id, SQLITE3_TEXT);
+    /* only uncomment this line, if you have enabled admin restriction above by adding (AND...OR) in query 
+
+    $stmt->bindValue(':department', $adminDepartment, SQLITE3_TEXT);*/
 
     $result = $stmt->execute();
 
@@ -159,26 +220,6 @@ if ($flagResult) {
     }
 }
 
-/*
- * |--------------------------------------------------------------------------
- * | STUDENT SEARCH
- * |--------------------------------------------------------------------------
- *
- * Normal behavior:
- *     Only seeded NB-* student records are searchable.
- *
- * CTF behavior:
- *     The search query intentionally concatenates user input directly
- *     into SQL. A SQL injection payload can manipulate the WHERE clause
- *     and bypass the NB-* restriction.
- *
- * Normal player registrations use NC-* student IDs, so:
- *
- *     NB-*  -> seeded records -> searchable normally
- *     NC-*  -> registered CTF players -> hidden from normal search
- *
- * |--------------------------------------------------------------------------
- */
 
 $students = [];
 
@@ -187,7 +228,7 @@ if ($search === '') {
     // Normal/default view.
     // Only seeded NB records are visible and only five are shown.
 
-    $query = "
+    $stmt =  $db->prepare("
         SELECT
             s.student_id,
             s.first_name,
@@ -201,51 +242,53 @@ if ($search === '') {
         LEFT JOIN marks m
             ON s.student_id = m.student_id
         WHERE s.student_id LIKE 'NB-%'
+            AND s.department = :department
         ORDER BY s.student_id
         LIMIT 5
-    ";
+    ");
 
-    $result = $db->query($query);
+    $stmt->bindValue(':department', $adminDepartment, SQLITE3_TEXT);
+
+   $result = $stmt->execute();
 
     if ($result) {
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $students[] = $row;
         }
+
     }
+} 
+else {
 
-} else {
+        /*
+        * INTENTIONAL CTF SQL INJECTION
+        *
+        * Normal searches are restricted to NB-* records.
+        * The search value is deliberately concatenated into SQL.
+        * There is no PHP-side filtering of returned rows.
+        */
 
-    /*
-     * INTENTIONAL CTF SQL INJECTION
-     *
-     * Normal searches are restricted to NB-* records.
-     * The search value is deliberately concatenated into SQL.
-     * There is no PHP-side filtering of returned rows.
-     */
-
-    $query = "
-        SELECT
-            s.student_id,
-            s.first_name,
-            s.last_name,
-            s.department,
-            m.math,
-            m.cpp,
-            m.python,
-            m.graphics
-        FROM students s
-        LEFT JOIN marks m
-            ON s.student_id = m.student_id
-        WHERE
-            (
-                s.first_name LIKE '%$search%'
-                OR s.last_name LIKE '%$search%'
-                OR s.student_id LIKE '%$search%'
-                OR s.department LIKE '%$search%'
-            )
-            AND s.student_id LIKE 'NB-%'
-        ORDER BY s.student_id
-    ";
+        $query = "
+            SELECT
+                s.student_id,
+                s.first_name,
+                s.last_name,
+                s.department,
+                m.math,
+                m.cpp,
+                m.python,
+                m.graphics
+            FROM students s
+            LEFT JOIN marks m
+                ON s.student_id = m.student_id
+            WHERE
+                (
+                    s.first_name LIKE '%$search%'
+                    OR s.last_name LIKE '%$search%'
+                    OR s.student_id LIKE '%$search%'
+                    OR s.department LIKE '%$search%'
+                ) AND s.student_id LIKE 'NB-%' ORDER BY s.student_id
+        ";
 
     try {
 
@@ -253,7 +296,7 @@ if ($search === '') {
 
         if ($result) {
             while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-                $students[] = $row;
+            $students[] = $row;
             }
         }
 
@@ -288,10 +331,7 @@ function e($value)
 
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Edit Marks | Northenbridge College</title>
 
@@ -327,15 +367,13 @@ function e($value)
             border-bottom: 4px solid var(--brass);
         }
 
-        .nav {
-            max-width: 1200px;
-            margin: auto;
-            padding: 18px 24px;
-
+        nav {
+            background: var(--hedge-dark);
+            color: white;
+            padding: 5px 6%;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 20px;
+            align-items: center;
         }
 
         .brand {
@@ -591,28 +629,7 @@ function e($value)
 
 <body>
 
-<header>
-
-    <div class="nav">
-
-        <div>
-            <div class="brand">
-                Northenbridge College
-            </div>
-
-            <div class="admin-label">
-                Administration Portal
-            </div>
-        </div>
-
-        <a class="logout" href="logout.php">
-            Logout
-        </a>
-
-    </div>
-
-</header>
-
+<?php require_once __DIR__ . '/../includes/adm-header.php'; ?>
 
 <main class="container">
 
@@ -801,14 +818,29 @@ function e($value)
                 >
                     Update Marks
                 </button>
-<?php if ($flag3 !== null): ?>
-        <div class="flag-box">
-            <div class="flag-label">FLAG 03</div>
-            <div class="flag-value">
-                <?= e($flag3) ?>
-            </div>
+<?php
+$isNcStudent = (
+    isset($selected_student['student_id']) &&
+    strncmp($selected_student['student_id'], 'NC-', 3) === 0
+);
+?>
+
+<?php if ($isNcStudent && $flag3 !== null): ?>
+
+    <div class="flag-box">
+
+        <div class="flag-label">
+            FLAG 03
         </div>
-    <?php endif; ?>
+
+        <div class="flag-value">
+            <?= e($flag3) ?>
+        </div>
+
+    </div>
+
+<?php endif; ?>
+
             </form>
 
 
@@ -957,10 +989,35 @@ function e($value)
             </div>
 
         <?php endif; ?>
+        <?php if ($file_contents !== null): ?>
+
+    <section class="panel edit-panel">
+
+        <h2>Document</h2>
+
+        <pre style="
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f0ece2;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 14px;
+        "><?= e($file_contents) ?></pre>
+
+    </section>
+
+<?php elseif ($file_read_error !== null): ?>
+
+    <div class="notice error">
+        <?= e($file_read_error) ?>
+    </div>
+
+<?php endif; ?>
 
     </section>
 
 </main>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/../includes/adm-footer.php'; ?>
