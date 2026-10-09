@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/init.php';
 require_once __DIR__ . '/../db.php';
 
 /*
@@ -51,7 +51,8 @@ $stmt = $db->prepare("
         username,
         name,
         number,
-        salary
+        salary,
+        department
     FROM admins
     WHERE id = :id
     LIMIT 1
@@ -71,26 +72,32 @@ if (!$admin) {
 
 /*
 |--------------------------------------------------------------------------
-| Fetch only a limited number of students
+| Fetch only a limited number of students from the clerk's department
 |--------------------------------------------------------------------------
 |
-| Normal dashboard view intentionally shows only 5 records.
+| Clerk view is restricted: only records for the administrator's own
+| department are shown, and the dashboard exposes only 5 records.
 |
 */
-$result = $db->query("
+$studentStmt = $db->prepare("
     SELECT
         student_id,
         first_name,
         last_name,
         department
     FROM students
+    WHERE department = :department
     ORDER BY student_id
     LIMIT 5
 ");
 
+$studentStmt->bindValue(':department', $admin['department'], SQLITE3_TEXT);
+
+$studentResult = $studentStmt->execute();
+
 $students = [];
 
-while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+while ($row = $studentResult->fetchArray(SQLITE3_ASSOC)) {
     $students[] = $row;
 }
 
@@ -131,10 +138,16 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             font-family: Arial, sans-serif;
         }
 
+        header {
+            background: var(--hedge-dark);
+            color: white;
+            border-bottom: 4px solid var(--brass);
+        }
+
         nav {
             background: var(--hedge-dark);
             color: white;
-            padding: 18px 6%;
+            padding: 5px 6%;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -270,6 +283,12 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             opacity: .9;
         }
 
+        .panel-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
         .table-wrapper {
             overflow-x: auto;
         }
@@ -374,25 +393,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 <body>
 
 
-<nav>
-
-    <div class="logo">
-        Northenbridge College
-    </div>
-
-    <div class="nav-right">
-
-        <span>
-            Administrator
-        </span>
-
-        <a href="logout.php" class="logout">
-            Logout
-        </a>
-
-    </div>
-
-</nav>
+<?php require_once __DIR__ . '/../includes/adm-header.php'; ?>
 
 
 <main class="container">
@@ -452,6 +453,18 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 
         </div>
 
+        <div class="admin-card">
+
+            <div class="label">
+                Department
+            </div>
+
+            <div class="value">
+                <?= htmlspecialchars($admin['department']) ?>
+            </div>
+
+        </div>
+
     </section>
 
 
@@ -468,17 +481,21 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 </h2>
 
                 <p>
-                    A limited overview of enrolled students.
+                    A limited overview of your department's enrolled students.
                 </p>
 
             </div>
 
-            <a
-                href="edit-marks.php"
-                class="manage-button"
-            >
-                Edit Student Marks
-            </a>
+            <div class="panel-actions">
+
+                <a
+                    href="edit-marks.php"
+                    class="manage-button"
+                >
+                    Edit Student Marks
+                </a>
+
+            </div>
 
         </div>
 
@@ -539,13 +556,6 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             </table>
 
         </div>
-
-
-        <div class="limited-note">
-            Only a limited number of student records are displayed
-            on the dashboard. Use the marks management page to
-            manage academic records.
-        </div>
                     
     </section>
     <?php if ($flag2 !== null): ?>
@@ -559,10 +569,4 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 </main>
 
 
-<footer>
-    &copy; <?= date('Y') ?> Northenbridge College — Administration
-</footer>
-
-
-</body>
-</html>
+<?php require_once __DIR__ . '/../includes/adm-footer.php'; ?>
