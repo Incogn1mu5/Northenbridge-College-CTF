@@ -2,7 +2,8 @@
 
 The vulnerabilities in this project are intentional and are limited to the fictional Northenbridge College application.
 
-The tests below verify that the intended CTF path works without relying on unrelated system weaknesses.
+The tests below verify that the intended CTF path works without relying on unrelated system weaknesses.  
+</br>  
 
 ## 1. Hidden Admin Route
 
@@ -14,31 +15,29 @@ The tests below verify that the intended CTF path works without relying on unrel
 
 The admin portal is not included in the normal student navigation.
 
-The student marks page contains a reassessment error referring to the administrative service at `/admin`.
+The player needs to perform directory enumeration and discover hidden `/admin` route.
 
 ### Expected Result
 
-A player following the clue can reach the admin login page and obtain the first flag.
-
----
+A player can reach the admin login page and obtain the `Flag 01`.  
+</br>  
 
 ## 2. Exposed Credentials
 
 ### Location
 
 ```text
-/admin/robots.txt
+/.env
 ```
-
-The file contains fictional administrator credentials used by the challenge.
+The only hint in served HTML is the comment <!-- backup: /.env --> on www/admin/index.php — must never appear on any public page. 
+The file contains fictional faculty credentials used by the challenge.
 
 ### Expected Result
 
 A player who discovers the file can use the credentials to log into the admin portal.
 
-No real credentials are used by the project.
-
----
+No real credentials are used by the project.  
+</br>  
 
 ## 3. Limited Student Records
 
@@ -49,7 +48,7 @@ No real credentials are used by the project.
 /admin/edit-marks.php
 ```
 
-The admin dashboard only displays a limited number of student records.
+The admin dashboard only displays a limited number of student records. Player discovers `Flag 02` on `/admin/dashboard.php`
 
 The marks management page also applies a restriction to the normal search results.
 
@@ -57,9 +56,9 @@ The student created during the CTF is not normally visible in this list.
 
 ### Expected Result
 
-The player can identify that the visible records are incomplete and continue investigating the search functionality.
+The player can identify that the visible records are incomplete and continue investigating the search functionality.  
+</br>  
 
----
 ## 4. Intended Student Search Restriction
 
 ### Location
@@ -95,8 +94,15 @@ NB-* restriction bypassed
      │
      ▼
 NC-* player record discovered
+     │
+     ▼
+edit marks → NC-* student
+     │
+     ▼
+Flag 03
 ```
----
+</br>  
+
 ## 5. SQL Injection
 
 ### Location
@@ -115,67 +121,74 @@ The actual marks update operation uses a prepared statement; the intended weakne
 
 A player can manipulate the search input to bypass the normal student ID restriction and discover additional fictional records.
 
-The player's own student ID can then be used with the marks editing interface.
+The player's own student ID can then be used with the marks editing interface.  
+</br>  
 
----
+## 6. Local File Inclusion
 
-## 6. Marks Manipulation
+Once the player's student record has been discovered, the marks editing interface, player needs to dump all database table and look for clue in of the table.
 
-Once the player's student record has been discovered, the marks editing interface allows the record to be modified.
+The same parameter which fetches the student record can also fetch system-files.
 
-The player's initial Python mark is intentionally low enough to produce a failed result.
+
 
 ### Expected Result
 
-After increasing the Python mark to a passing value, the student's result changes to **PASS** and the final flag becomes available.
-
----
+After finding clue for final flag, LFI technique can be used to retrieve system files and display it on webapp which will display Final `Flag 04`  
+</br>  
 
 # Testing
 
 ## Basic Application Test
 
-* [ ] Homepage loads successfully.
-* [ ] Student registration works.
-* [ ] Credential file downloads successfully.
-* [ ] Student can log in.
-* [ ] Profile page loads.
-* [ ] Student marks are displayed.
-* [ ] Initial result is failed.
-* [ ] Reassessment message displays the `/admin` clue.
-* [ ] Student logout works.
+* [x] Home-page loads.
+* [x] Events-page loads.
+* [x] Academics-page loads.
+* [x] Admissions-page loads.
+* [x] About-page loads.
+* [x] Contact-page loads.
+* [x] Student registration works.
+* [x] Credential file downloads successfully.
+* [x] Student can log in.
+* [x] Profile page loads.
+* [x] Student marks are displayed.
+* [x] Initial result is failed.
+* [x] Clue for `.env` placed in source page on `/index.php` 
+* [x] Directory Enumeration discloses hidden `/admin` route.
+* [x] Student logout works.
 
 ## Admin Test
 
-* [ ] `/admin` loads the admin login page.
-* [ ] Admin credentials from the intended challenge file work.
-* [ ] Admin dashboard loads after login.
-* [ ] Limited student records are displayed.
-* [ ] Marks management page loads.
-* [ ] Existing student marks can be edited.
-* [ ] Updated marks are saved correctly.
-* [ ] Admin logout works.
+* [x] `/admin` loads the admin login page.
+* [x] Admin credentials from the intended challenge file work.
+* [x] Admin dashboard loads after login.
+* [x] Limited student records are displayed.
+* [x] Marks management page loads.
+* [x] Existing student marks can be edited.
+* [x] Updated marks are saved correctly.
+* [x] Admin logout works.
 
 ## CTF Path Test
 
-* [ ] Flag 1 is available from the hidden admin route.
-* [ ] Flag 2 is available after discovering the exposed credentials.
-* [ ] Flag 3 is available during the limited-record stage.
-* [ ] SQL injection allows the intended additional records to be discovered.
-* [ ] The player's student record can be identified.
-* [ ] The player's marks can be changed.
-* [ ] The final result changes from FAIL to PASS.
-* [ ] Flag 4 is displayed after completing the final stage.
+* [x] Flag 01 is available from the hidden admin route.
+* [x] Flag 02 is available after successful login and access to admin dashboard.
+* [x] Flag 03 is available during the limited-record stage.
+* [x] SQL injection allows the intended additional records to be discovered.
+* [x] The player's student record can be identified.
+* [x] SQL injection allows the player to dump metadata of database.
+* [x] Database has clue for Final Flag.
+* [x] Final `Flag 04` present outside the database and stored on system with unique token value.
+* [x] Local File Inclusion works and retrieves intended flag.txt from systemfiles. 
 
 ## Network Test
 
 With bridged networking enabled:
 
-* [ ] VM receives an address on the local network.
-* [ ] Website is reachable from the host using the VM IP.
-* [ ] Website is reachable from a second device on the same network.
-* [ ] Multiple devices can load the website at the same time.
-* [ ] Student registration works while another player is using the site.
-* [ ] Admin pages remain accessible during normal player activity.
+* [x] VM receives an address on the local network.
+* [x] Website is reachable from the host using the VM IP.
+* [x] Website is reachable from a second device on the same network.
+* [x] Multiple devices can load the website at the same time.
+* [x] Student registration works while another player is using the site.
+* [x] Admin pages remain accessible during normal player activity.
 
 The CTF should be tested with several devices before the actual session, especially because all players use the same application and database.
