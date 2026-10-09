@@ -3,7 +3,7 @@
 // Northenbridge College — Admissions
 // ---------------------------------------------------------
 
-
+require_once __DIR__ . '/includes/init.php';
 
 $steps = [
     [
@@ -84,112 +84,6 @@ $year = date("Y");
     }
 
     a { color: inherit; }
-
-    /* ---------- Nav ---------- */
-    header.site-nav {
-        background: var(--hedge-dark);
-        color: var(--parchment);
-        border-bottom: 3px solid var(--brass);
-    }
-
-    .nav-inner {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0.9rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-    }
-
-    .brand {
-        display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-        text-decoration: none;
-        color: var(--parchment);
-    }
-
-    .brand-mark {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border: 1.5px solid var(--brass);
-        border-radius: 50%;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--brass);
-    }
-
-    .brand-word {
-        font-size: 1.25rem;
-    }
-
-    .brand-word small {
-        display: block;
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.62rem;
-        letter-spacing: 0.14em;
-        color: #b9c4bb;
-        font-weight: 400;
-    }
-
-    nav.primary-links {
-        display: flex;
-        align-items: center;
-        gap: 1.75rem;
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.93rem;
-    }
-
-    nav.primary-links a {
-        text-decoration: none;
-        color: #d8ded9;
-        padding: 0.3rem 0;
-        border-bottom: 2px solid transparent;
-        transition: border-color 0.15s ease, color 0.15s ease;
-    }
-
-    nav.primary-links a:hover {
-        color: #ffffff;
-        border-bottom-color: var(--brass);
-    }
-
-    .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.9rem;
-    }
-
-    .btn-login {
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.88rem;
-        background: var(--brass);
-        color: #221a0d;
-        padding: 0.5rem 1.1rem;
-        border-radius: 3px;
-        text-decoration: none;
-        font-weight: 600;
-        white-space: nowrap;
-        transition: background 0.15s ease;
-    }
-
-    .btn-login:hover {
-        background: #c19248;
-    }
-
-    .menu-toggle {
-        display: none;
-        background: none;
-        border: 1px solid #4b5f54;
-        color: var(--parchment);
-        font-size: 1.1rem;
-        padding: 0.35rem 0.6rem;
-        border-radius: 3px;
-        cursor: pointer;
-    }
 
     /* ---------- Page hero ---------- */
     .page-hero {
@@ -368,24 +262,6 @@ $year = date("Y");
 
     .deadline-date { color: var(--muted); }
 
-    /* ---------- Footer ---------- */
-    footer {
-        background: var(--hedge-dark);
-        color: #b9c4bb;
-        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-        font-size: 0.83rem;
-    }
-
-    .footer-inner {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
     /* ---------- Responsive ---------- */
     @media (max-width: 860px) {
         .page-hero-inner { grid-template-columns: 1fr; }
@@ -410,28 +286,7 @@ $year = date("Y");
 </head>
 <body>
 
-<header class="site-nav">
-    <div class="nav-inner">
-        <a href="index.php" class="brand">
-            <span class="brand-mark">NC</span>
-            <span class="brand-word">Northenbridge<small>COLLEGE</small></span>
-        </a>
-
-        <nav class="primary-links">
-            <a href="academics.php">Academics</a>
-            <a href="admissions.php">Admissions</a>
-            <a href="events.php">Events</a>
-            <a href="about.php">About</a>
-            <a href="contact.php">Contact</a>
-        </nav>
-
-        <div class="nav-actions">
-            <a href="login.php" class="btn-login">Student Login</a>
-            <button class="menu-toggle" aria-label="Open menu">☰</button>
-        </div>
-    </div>
-</header>
-
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
 <section class="page-hero">
     <div class="page-hero-inner">
@@ -485,12 +340,4 @@ $year = date("Y");
     </div>
 </section>
 
-<footer>
-    <div class="footer-inner">
-        <span>&copy; <?php echo $year; ?> Northenbridge College</span>
-        <span>18 Whitfield Lane · Northenbridge</span>
-    </div>
-</footer>
-
-</body>
-</html>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
