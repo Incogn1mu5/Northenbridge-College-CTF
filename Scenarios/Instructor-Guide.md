@@ -2,7 +2,7 @@
 
 > **INSTRUCTOR ONLY — CONTAINS SOLUTIONS.**
 > Do not hand this file to students. The student-facing companion is
-> `scenarios/northbridge-student-guide.md`.
+> `Scenarios/Student-Guide.md`.
 
 > Flag values and the working credential are deliberately trunked and must be read from the running lab only. The final `NCC{...}` token is random per deployment and is referenced by **path only**.
 
