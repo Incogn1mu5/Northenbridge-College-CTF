@@ -6,7 +6,7 @@ Northenbridge College CTF is a fictional college web portal designed as a beginn
 The project uses:
 
 * **Vagrant 2.4.9** for creating and provisioning the VM
-* **Ubuntu 24.04** as the VM operating system
+* **Ubuntu/jammy64** as the VM operating system
 * **Apache 2.4.58** as the web server
 * **PHP 8.3.6** for the application
 * **SQLite 3.45.1** for the database
@@ -29,7 +29,7 @@ CTF Player01    CTF Player02      ....
                      ▼                
           Access College Website      
          ┌───────────────────────┐    
-         │http://< vm-IP >:8080  │    
+         │http://vm-Bridged-IP/  │    
          ├───────────────────────┤    
          │ Northenbridge College │    
          └───────────────────────┘    
@@ -67,7 +67,7 @@ The lab uses a single Vagrant-managed Ubuntu virtual machine.
 
 VM Components|Configuration
 -|-
-Vagrant box | bento/ubuntu-24.04
+Vagrant box | ubuntu/jammy64
 Provider | Virtual Box 7.2.4
 Hostname | northenbridge
 VirtualBox VM name | northenbridge-ctf
@@ -120,30 +120,105 @@ The northenbridge.local Apache ServerName does not automatically provide DNS res
 The vulnerable application should remain on a controlled/private network and must not be exposed to the public internet.  
 </br>  
 
-## 5. Shared Folders
+## 5. Deployement
 
-The project uses Vagrant synced folders:
+The project uses normal mode and development mode. Normal mode (provisioning-only) is default mode which performs update, configurations entirely inside VM and this mode doesn't depends on host. Development mode uses Vagrant synced folders if CTF host enables Development mode using `$env:DEV_MODE="1"` and then `vagrant up`. Both `/vagrant` and the `./www` mount are use in the `Vagrantfile` only if CTF host choose to deploy lab in dev-mode to make changes on webpages.
 
+### 1. Normal Mode — Git-based deployment
+```text
+                        Project root (clone anywhere)
+
+Windows host
+├── Vagrantfile
+├── seed.sql
+└── infra/provision.sh — single source of truth
+                                          ▼ 
+                           vagrant up / vagrant provision
+                           Provisioning executes inside Ubuntu VM
+                                          ▼ 
+
+Inside the VM
+
+1. Install Apache, PHP, SQLite, Git, cURL and rsync dependencies.
+2. Clone PORTAL_REPO:PORTAL_BRANCH into /opt/northenbridge-src.
+3. Rsync $PORTAL_SUBDIR (www) into /var/www/html, excluding the database directory.
+4. Configure Apache virtual host for http://northenbridge.local/.
+5. Write the decoy .env file into /var/www/html/.env.
+6. Create /opt/northenbridge/flag.txt outside the web root.
+7. Seed SQLite from seed.sql, skipping initialization if tables already exist.
+8. Restart Apache and verify HTTP 200 on 127.0.0.1:80 inside the VM.
 ```
-Project root
-    │
-    ├── Vagrantfile
-    ├── provision.sh
-    ├── seed.sql
-    └── www/
-          │
-          ▼
-      /vagrant
 
-    ./www
-       │
-       ▼
-    /var/www/northenbridge
+Deployment flow:
+```text
+Windows host
+  └── Project root
+       ├── Vagrantfile
+       ├── seed.sql
+       └── infra/provision.sh
+                │
+                ▼
+          Ubuntu VM
+                │
+                ├── Git clone → /opt/northenbridge-src
+                ├── Rsync     → /var/www/html
+                ├── SQLite    → application database
+                ├── Flag 04   → /opt/northenbridge/flag.txt
+                └── Apache    → northenbridge.local
 ```
 
-The www directory contains the PHP application and is mounted into the VM.
+In this mode, the Git repository is the source of the application code deployed into the VM. Changes made to the host's application files do not automatically update the deployed site.  
+</br>
 
-This allows the application source to be edited from the host machine without requiring a graphical editor inside the Ubuntu VM.  
+### 2. Development Mode — Shared-folder deployment
+
+Development mode is intended to let you edit your website files on Windows while Apache serves them from the Ubuntu VM, without having to clone and copy the application code on every change.
+```text
+                                 Project root (clone anywhere)
+
+Windows host — editable application source
+├── Vagrantfile
+├── seed.sql
+├── infra/provision.sh — single source of truth
+└── www/ — application source
+      └── PHP pages, other application files
+                                ▼
+                     DEV_MODE=1 + vagrant up
+                  Host directory shared with the VM
+                                ▼
+Inside the VM
+
+1. Install the required system packages.
+2. Configure the development-mode application source path or shared folder.
+3. Make the host's application files available directly to Apache, rather than relying on a fresh Git clone and rsync for each edit.
+4. Configure Apache for http://northenbridge.local/.
+5. Initialize SQLite from seed.sql when the database tables do not already exist.
+6. Restart Apache and verify HTTP 200 on 127.0.0.1:80 inside the VM.
+```
+
+Development deployment flow:
+``` text
+Windows host
+  └── Project root
+       ├── Vagrantfile
+       ├── seed.sql
+       ├── infra/provision.sh
+       └── www/
+            └── PHP pages, CSS, JS and assets
+                   │
+                   │ Shared folder / development source
+                   ▼
+                Ubuntu VM
+                   │
+                   ├── Apache  → shared application files
+                   ├── SQLite  → application database
+                   ├── Flag 04 → /opt/northenbridge/flag.txt
+                   └── Vhost   → northenbridge.local
+```
+
+
+
+The `www` directory in the repository is the portal application source (the "northenbridge-portal" content). At runtime it is served from `/var/www/html` inside the VM and is fully independent of the host filesystem — host edits only reach the VM if development mode is enabled before deploying lab.  
 </br>
 
 ## 6. Web Server
@@ -151,7 +226,7 @@ This allows the application source to be edited from the host machine without re
 Apache serves the application from:
 
 ```
-/var/www/northenbridge
+/var/www/html
 ```
 The Vagrant provisioning script creates an Apache virtual-host configuration for the application.
 
@@ -164,8 +239,13 @@ HTTP request
 Apache *:80
      │
      ▼
-/var/www/northenbridge
+/var/www/html
      │
+     ├── admissions.php
+     ├── academics.php
+     ├── about.php
+     ├── contact.php
+     ├── events.php
      ├── index.php
      ├── register.php
      ├── login.php
@@ -185,13 +265,19 @@ The student-facing application contains:
 
 ```
 /
+├── admissions.php
+├── academics.php
+├── about.php
+├── contact.php
+├── events.php
 ├── index.php
 ├── register.php
 ├── login.php
 ├── profile.php
 ├── marks.php
 ├── logout.php
-└── db.php
+├── db.php
+└── .env
 ```
 
 **Student workflow**
@@ -216,8 +302,6 @@ Marks
 ```
 
 The registration process generates a fictional student ID, institutional email address, and password based on the submitted registration information.
-
-Newly registered students receive intentionally failing marks, including a low Python mark. This creates the motivation for the reassessment stage of the CTF.  
 </br>  
 
 ## 8. Administration Portal
@@ -233,8 +317,8 @@ The implemented administration pages include:
 ├── index.php
 ├── dashboard.php
 ├── edit-marks.php
-├── logout.php
-└── robots.txt
+└── logout.php
+
 ```
 
 The administration portal is not presented as a normal student navigation option.
@@ -304,29 +388,29 @@ The implemented subjects include:
 
 **Admins**
 
-The admins table stores fictional administrator accounts used by the CTF.
+The admins table stores fictional administrator accounts used by the CTF lab.
 
 **Flags**
 
-The flags table stores the CTF flags used by the application.
-
-The actual flag values should be treated as implementation/solution data rather than published in student-facing documentation.  
+The flags table stores the CTF flags used by the application. The actual flag values tell player about what vulnerability is exploited. 
 </br>  
 
 ## 10. Database Initialization
 
-The database is initialized from seed.sql.
+The database is initialized from `seed.sql` by `infra/provision.sh`.
 
 The provisioning process:
 
 1. Installs SQLite and PHP SQLite support.
-2. Creates the application database directory.
-3. Creates the SQLite database.
-4. Executes the seed SQL.
-5. Assigns the database directory to the Apache www-data user.
+2. Clones the portal source and installs it into `/var/www/html`.
+3. Creates the application database directory.
+4. Creates the SQLite database and executes the seed SQL **only when the database is empty** (the seed is written with `CREATE TABLE IF NOT EXISTS` and `INSERT OR IGNORE`, so it is idempotent and re-provisioning never wipes player data).
+5. Assigns the database directory to the Apache `www-data` user.
 6. Sets appropriate permissions for the application to access the database.
 
-The seed file provides the fictional students, marks, administrator account, and CTF flags required by the application.  
+The seed file provides the fictional students, marks, administrator account, and the in-application CTF flags.
+
+The **final** flag is deliberately placed outside the database by the provisioning script, at `/opt/northenbridge/flag.txt`.  
 </br>  
 
 ## 11. Application Data Flow
@@ -442,17 +526,18 @@ The host operating system, Vagrant configuration, SSH service, and unrelated sys
 
 ## 13. Intentional Vulnerability Locations
 
-The implemented CTF contains four main stages:
+The implemented CTF contains six main stages:
 
-Stage| Application area | Intended lesson
+Stage| Areas of Application | Intended lesson
 -|-|-
 1 | Hidden /admin route | Hidden routes are not access control
-2 | Web-accessible robots.txt | Sensitive information should not be exposed through web files
+2 | Web-accessible decoy sprayable .env file | Sensitive information should not be exposed through web files
 3 | Limited administrator record view |	Understand application-side record restrictions
-4 | Administrator search | Unsafe SQL query construction / SQL injection
+4 | Investigate the Unsafe Search (`search=`) | Concatenating user input into SQL lets an attacker alter the application's intended query logic
+5 | Database Exfiltration | Data disclosed through injection can itself be the reconnaissance step that enables a second, unrelated vulnerability
+6 | Local File Inclusion to access system files via (`id=`)| Improper file path validation can allow attackers to read sensitive local files outside the intended application directory
 
 The SQL injection weakness is intentionally restricted to the fictional student database.
-
 No host-level exploitation is required to complete the CTF.  
 </br>
 
@@ -469,8 +554,9 @@ A reset should restore:
 - Marks
 - CTF flags
 - Application state
+- Filesystem artifacts (decoy `.env`, final flag)
 
-Provisioning should not be performed against a live CTF instance while players are using it because the seed process restores the database state.  
+Re-running `vagrant provision` against a live VM does **not** restore the database (seeding is skipped once tables exist); use `vagrant destroy -f && vagrant up` for a true reset.  
 </br>
 
 ## 15. Multi-Player Considerations
