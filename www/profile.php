@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/init.php';
 require_once __DIR__ . '/db.php';
 $errors = [];
 $updated = false;
@@ -856,42 +856,7 @@ $initials =
 <body>
 
 
-<!-- ================= Navigation ================= -->
-
-<nav>
-
-    <div class="brand">
-        Northedgebridge <span>College</span>
-    </div>
-
-
-    <div class="nav-links">
-
-        <a href="index.php">
-            Home
-        </a>
-
-        <a
-            href="profile.php"
-            class="active"
-        >
-            My Profile
-        </a>
-
-        <a href="marks.php">
-            Exam Result
-        </a>
-
-        <a
-            href="login.php"
-            class="logout"
-        >
-            Sign Out
-        </a>
-
-    </div>
-
-</nav>
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
 
 <!-- ================= Header ================= -->
@@ -1314,14 +1279,4 @@ $initials =
 </main>
 
 
-<footer>
-
-    &copy; <?php echo date('Y'); ?>
-    Northedgebridge College
-    — Student Portal
-
-</footer>
-
-
-</body>
-</html>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
